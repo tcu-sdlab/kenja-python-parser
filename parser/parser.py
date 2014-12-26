@@ -4,18 +4,15 @@ from treewriter import TreeWriter
 
 
 class GitTreeCreator:
-    def __init__(self, input_file, output_dir):
-        self.input_file = input_file
+    def __init__(self, output_dir):
         self.output_dir = output_dir
         self.output_file = []
         self.source = ""
         self.root = []
 
     def read_file(self):
-        f = open(self.input_file, 'r')
-        for line in f:
+        for line in sys.stdin:
             self.source += line
-        f.close()
 
     def parse_sourcecode(self):
         self.read_file()
@@ -23,22 +20,22 @@ class GitTreeCreator:
 
     def write_ast_as_filetree(self, source):
         self.root = ast.parse(source)
-        self.output_file = open(self.output_dir + '/out', 'w')
+        self.output_file = open(self.output_dir, 'w')
 
         writer = TreeWriter(self.output_file)
         writer.write_tree(self.root)
         self.output_file.close()
 
+
 def main():
     argvs = sys.argv
-    if len(argvs) != 3:
+    if len(argvs) != 2:
         print "input error"
-        print "argv : <Path of input file> <Path of output directory>"
+        print "argv : <Path of output directory>"
         return
 
-    creator = GitTreeCreator(argvs[1], argvs[2])
+    creator = GitTreeCreator(argvs[1])
     creator.parse_sourcecode()
 
 if __name__ == '__main__':
     main()
-
