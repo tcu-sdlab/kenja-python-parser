@@ -19,7 +19,10 @@ class GitTreeCreator:
         self.write_ast_as_filetree(self.source)
 
     def write_ast_as_filetree(self, source):
-        self.root = ast.parse(source)
+        try:
+            self.root = ast.parse(source)
+        except:
+            pass
         self.output_file = open(self.output_dir, 'w')
 
         writer = TreeWriter(self.output_file)
@@ -31,7 +34,7 @@ def main():
     argvs = sys.argv
     if len(argvs) != 2:
         print "input error"
-        print "argv : <Path of output directory>"
+        print "argv : <Full path of output file>"
         return
 
     creator = GitTreeCreator(argvs[1])
