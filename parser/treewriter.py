@@ -89,24 +89,28 @@ class TreeWriter:
             self.create_other_tree(others)
 
     def create_func_tree(self, node):
-        out = cStringIO.StringIO()
-        Unparser(node, out)
-        src = out.getvalue().split('\n')
+        src = to_source(node).split('\n')
 
-        self.contents.append(START_TREE + src[2][4:-1])
+        # src[0] has def foobar(...):
+        # src[4:-1] means foobar(...)
+        assert src[0].startswith('def ')
+        assert src[0][-1] == ':'
+        function_name = src.pop(0)[4:-1]
+
+        self.contents.append(START_TREE + function_name)
         self.contents.append(BLOB + BODY_BLOB)
-        self.contents.append(BLOB_INFO + str(len(src[3:])))
+        self.contents.append('{0}{1}'.format(BLOB_INFO, len(src)))
 
-        for line in src[3:]:
+        for line in src:
             self.contents.append(line)
 
         self.contents.append(BLOB + PARAMETERS_BLOB)
-        self.contents.append(BLOB_INFO + str(len(node.args.args)))
+        self.contents.append('{0}{1}'.format(BLOB_INFO, len(node.args.args)))
 
         for args in node.args.args:
             self.contents.append(args.id)
 
-        self.contents.append(END_TREE + src[2][4:-1])
+        self.contents.append(END_TREE + function_name)
 
     def create_other_tree(self, node):
         self.contents.append(BLOB + OTHER_BLOB)
