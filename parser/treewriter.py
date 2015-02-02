@@ -1,7 +1,5 @@
 import ast
-import cStringIO
 from astor import to_source
-from unparse import Unparser
 
 
 TREE = '[TN] '
@@ -111,14 +109,7 @@ class TreeWriter:
         self.contents.extend(get_blob(OTHER_BLOB, src))
 
     def is_constructor(self, node):
-        out = cStringIO.StringIO()
-        Unparser(node, out)
-        src = out.getvalue().split('\n')
-
-        if (src[2][4:11] == "__new__") or (src[2][4:12] == "__init__"):
-            return True
-        else:
-            return False
+        return node.name == '__new__' or node.name == '__init__'
 
     def write_file(self):
         self.output_file.write('\n'.join(self.contents))
