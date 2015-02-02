@@ -4,8 +4,8 @@ from treewriter import TreeWriter
 
 
 class GitTreeCreator:
-    def __init__(self, output_dir):
-        self.output_dir = output_dir
+    def __init__(self, output_path):
+        self.output_path = output_path
         self.output_file = []
         self.root = []
 
@@ -18,7 +18,7 @@ class GitTreeCreator:
             self.root = ast.parse(src)
         except:
             pass
-        self.output_file = open(self.output_dir, 'w')
+        self.output_file = open(self.output_path, 'w')
 
         writer = TreeWriter(self.output_file)
         writer.write_tree(self.root)
