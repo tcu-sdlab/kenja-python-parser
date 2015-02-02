@@ -51,21 +51,21 @@ class TreeWriter:
                     func_tmp.append(node_func)
 
             if len(constructor_tmp) != 0:
-                self.contents.append(START_TREE + CONSTRUCTOR_ROOT_NAME + '\n')
+                self.contents.append(START_TREE + CONSTRUCTOR_ROOT_NAME)
                 for node_func in constructor_tmp:
                     self.create_func_tree(node_func)
-                self.contents.append(END_TREE + CONSTRUCTOR_ROOT_NAME + '\n')
+                self.contents.append(END_TREE + CONSTRUCTOR_ROOT_NAME)
 
             if len(func_tmp) != 0:
-                self.contents.append(START_TREE + METHOD_ROOT_NAME + '\n')
+                self.contents.append(START_TREE + METHOD_ROOT_NAME)
                 for node_func in func_tmp:
                     self.create_func_tree(node_func)
-                self.contents.append(END_TREE + METHOD_ROOT_NAME + '\n')
+                self.contents.append(END_TREE + METHOD_ROOT_NAME)
 
             # write class
             for node_class in class_def:
-                self.contents.append(START_TREE + CLASS_ROOT_NAME + '\n')
-                self.contents.append(START_TREE + node_class.name + '\n')
+                self.contents.append(START_TREE + CLASS_ROOT_NAME)
+                self.contents.append(START_TREE + node_class.name)
 
                 self.create_tree(node_class)
 
@@ -74,12 +74,12 @@ class TreeWriter:
                     out = cStringIO.StringIO()
                     Unparser(node.bases, out)
                     src = out.getvalue()
-                    self.contents.append(BLOB + EXTEND_BLOB + '\n')
-                    self.contents.append(BLOB_INFO + '1' + '\n')
-                    self.contents.append(src + '\n')
+                    self.contents.append(BLOB + EXTEND_BLOB)
+                    self.contents.append(BLOB_INFO + '1')
+                    self.contents.append(src)
 
-                self.contents.append(END_TREE + node_class.name + '\n')
-                self.contents.append(END_TREE + CLASS_ROOT_NAME + '\n')
+                self.contents.append(END_TREE + node_class.name)
+                self.contents.append(END_TREE + CLASS_ROOT_NAME)
 
             # write other
             if len(other) != 0:
@@ -92,31 +92,31 @@ class TreeWriter:
         Unparser(node, out)
         src = out.getvalue().split('\n')
 
-        self.contents.append(START_TREE + src[2][4:-1] + '\n')
-        self.contents.append(BLOB + BODY_BLOB + '\n')
-        self.contents.append(BLOB_INFO + str(len(src[3:])) + '\n')
+        self.contents.append(START_TREE + src[2][4:-1])
+        self.contents.append(BLOB + BODY_BLOB)
+        self.contents.append(BLOB_INFO + str(len(src[3:])))
 
         for line in src[3:]:
-            self.contents.append(line + '\n')
+            self.contents.append(line)
 
-        self.contents.append(BLOB + PARAMETERS_BLOB + '\n')
-        self.contents.append(BLOB_INFO + str(len(node.args.args)) + '\n')
+        self.contents.append(BLOB + PARAMETERS_BLOB)
+        self.contents.append(BLOB_INFO + str(len(node.args.args)))
 
         for args in node.args.args:
-            self.contents.append(args.id + '\n')
+            self.contents.append(args.id)
 
-        self.contents.append(END_TREE + src[2][4:-1] + '\n')
+        self.contents.append(END_TREE + src[2][4:-1])
 
     def create_other_tree(self, node):
         out = cStringIO.StringIO()
         Unparser(node, out)
         src = out.getvalue().split('\n')
 
-        self.contents.append(BLOB + OTHER_BLOB + '\n')
-        self.contents.append(BLOB_INFO + str(len(src) - 1) + '\n')
+        self.contents.append(BLOB + OTHER_BLOB)
+        self.contents.append(BLOB_INFO + str(len(src) - 1))
 
         for line in src[1:]:
-            self.contents.append(line + '\n')
+            self.contents.append(line)
 
     def is_constructor(self, node):
         out = cStringIO.StringIO()
@@ -129,5 +129,5 @@ class TreeWriter:
             return False
 
     def write_file(self):
-        for line in self.contents:
-            self.output_file.write(line)
+        self.output_file.write('\n'.join(self.contents))
+        self.output_file.write('\n')
