@@ -32,58 +32,60 @@ class TreeWriter:
         func_def = []
         other = []
 
-        if hasattr(node, "body"):
-            for child in node.body:
-                if isinstance(child, ast.ClassDef):
-                    class_def.append(child)
-                elif isinstance(child, ast.FunctionDef):
-                    func_def.append(child)
-                else:
-                    other.append(child)
+        if not hasattr(node, 'body'):
+            return
 
-            # write func
-            constructor_tmp = []
-            func_tmp = []
-            for node_func in func_def:
-                if self.is_constructor(node_func):
-                    constructor_tmp.append(node_func)
-                else:
-                    func_tmp.append(node_func)
+        for child in node.body:
+            if isinstance(child, ast.ClassDef):
+                class_def.append(child)
+            elif isinstance(child, ast.FunctionDef):
+                func_def.append(child)
+            else:
+                other.append(child)
 
-            if len(constructor_tmp) != 0:
-                self.contents.append(START_TREE + CONSTRUCTOR_ROOT_NAME)
-                for node_func in constructor_tmp:
-                    self.create_func_tree(node_func)
-                self.contents.append(END_TREE + CONSTRUCTOR_ROOT_NAME)
+        # write func
+        constructor_tmp = []
+        func_tmp = []
+        for node_func in func_def:
+            if self.is_constructor(node_func):
+                constructor_tmp.append(node_func)
+            else:
+                func_tmp.append(node_func)
 
-            if len(func_tmp) != 0:
-                self.contents.append(START_TREE + METHOD_ROOT_NAME)
-                for node_func in func_tmp:
-                    self.create_func_tree(node_func)
-                self.contents.append(END_TREE + METHOD_ROOT_NAME)
+        if len(constructor_tmp) != 0:
+            self.contents.append(START_TREE + CONSTRUCTOR_ROOT_NAME)
+            for node_func in constructor_tmp:
+                self.create_func_tree(node_func)
+            self.contents.append(END_TREE + CONSTRUCTOR_ROOT_NAME)
 
-            # write class
-            for node_class in class_def:
-                self.contents.append(START_TREE + CLASS_ROOT_NAME)
-                self.contents.append(START_TREE + node_class.name)
+        if len(func_tmp) != 0:
+            self.contents.append(START_TREE + METHOD_ROOT_NAME)
+            for node_func in func_tmp:
+                self.create_func_tree(node_func)
+            self.contents.append(END_TREE + METHOD_ROOT_NAME)
 
-                self.create_tree(node_class)
+        # write class
+        for node_class in class_def:
+            self.contents.append(START_TREE + CLASS_ROOT_NAME)
+            self.contents.append(START_TREE + node_class.name)
 
-                # write base class
-                if hasattr(node, "bases"):
-                    out = cStringIO.StringIO()
-                    Unparser(node.bases, out)
-                    src = out.getvalue()
-                    self.contents.append(BLOB + EXTEND_BLOB)
-                    self.contents.append(BLOB_INFO + '1')
-                    self.contents.append(src)
+            self.create_tree(node_class)
 
-                self.contents.append(END_TREE + node_class.name)
-                self.contents.append(END_TREE + CLASS_ROOT_NAME)
+            # write base class
+            if hasattr(node, "bases"):
+                out = cStringIO.StringIO()
+                Unparser(node.bases, out)
+                src = out.getvalue()
+                self.contents.append(BLOB + EXTEND_BLOB)
+                self.contents.append(BLOB_INFO + '1')
+                self.contents.append(src)
 
-            # write other
-            if len(other) != 0:
-                self.create_other_tree(other)
+            self.contents.append(END_TREE + node_class.name)
+            self.contents.append(END_TREE + CLASS_ROOT_NAME)
+
+        # write other
+        if len(other) != 0:
+            self.create_other_tree(other)
 
     def create_func_tree(self, node):
         out = cStringIO.StringIO()
