@@ -29,25 +29,25 @@ class TreeWriter:
         self.write_file()
 
     def create_tree(self, node):
-        class_def = []
-        func_def = []
-        other = []
+        class_defs = []
+        func_defs = []
+        others = []
 
         if not hasattr(node, 'body'):
             return
 
         for child in node.body:
             if isinstance(child, ast.ClassDef):
-                class_def.append(child)
+                class_defs.append(child)
             elif isinstance(child, ast.FunctionDef):
-                func_def.append(child)
+                func_defs.append(child)
             else:
-                other.append(child)
+                others.append(child)
 
         # write func
         constructor_tmp = []
         func_tmp = []
-        for node_func in func_def:
+        for node_func in func_defs:
             if self.is_constructor(node_func):
                 constructor_tmp.append(node_func)
             else:
@@ -66,7 +66,7 @@ class TreeWriter:
             self.contents.append(END_TREE + METHOD_ROOT_NAME)
 
         # write class
-        for node_class in class_def:
+        for node_class in class_defs:
             self.contents.append(START_TREE + CLASS_ROOT_NAME)
             self.contents.append(START_TREE + node_class.name)
 
@@ -84,9 +84,9 @@ class TreeWriter:
             self.contents.append(END_TREE + node_class.name)
             self.contents.append(END_TREE + CLASS_ROOT_NAME)
 
-        # write other
-        if other:
-            self.create_other_tree(other)
+        # write others
+        if others:
+            self.create_other_tree(others)
 
     def create_func_tree(self, node):
         out = cStringIO.StringIO()
