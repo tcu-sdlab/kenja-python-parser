@@ -3,17 +3,17 @@ import cStringIO
 from unparse import Unparser
 
 
-CLASS_ROOT_NAME = '[CN]'
 TREE = '[TN]'
 START_TREE = '[TS]'
 END_TREE = '[TE]'
-METHOD_ROOT_NAME = '[MT]'
 BLOB = '[BN]'
 BLOB_INFO = '[BI]'
+
+CLASS_ROOT_NAME = '[CN]'
+CONSTRUCTOR_ROOT_NAME = '[CS]'
+METHOD_ROOT_NAME = '[MT]'
 BODY_BLOB = 'body'
 PARAMETERS_BLOB = 'parameters'
-
-CONSTRUCTOR_ROOT_NAME = '[CS]'
 EXTEND_BLOB = 'extend'
 OTHER_BLOB = 'other'
 
