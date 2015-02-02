@@ -53,13 +53,13 @@ class TreeWriter:
             else:
                 func_tmp.append(node_func)
 
-        if len(constructor_tmp) != 0:
+        if constructor_tmp:
             self.contents.append(START_TREE + CONSTRUCTOR_ROOT_NAME)
             for node_func in constructor_tmp:
                 self.create_func_tree(node_func)
             self.contents.append(END_TREE + CONSTRUCTOR_ROOT_NAME)
 
-        if len(func_tmp) != 0:
+        if func_tmp:
             self.contents.append(START_TREE + METHOD_ROOT_NAME)
             for node_func in func_tmp:
                 self.create_func_tree(node_func)
@@ -85,7 +85,7 @@ class TreeWriter:
             self.contents.append(END_TREE + CLASS_ROOT_NAME)
 
         # write other
-        if len(other) != 0:
+        if other:
             self.create_other_tree(other)
 
     def create_func_tree(self, node):
