@@ -1,5 +1,6 @@
 import ast
 import cStringIO
+from astor import to_source
 from unparse import Unparser
 
 
@@ -108,15 +109,12 @@ class TreeWriter:
         self.contents.append(END_TREE + src[2][4:-1])
 
     def create_other_tree(self, node):
-        out = cStringIO.StringIO()
-        Unparser(node, out)
-        src = out.getvalue().split('\n')
-
         self.contents.append(BLOB + OTHER_BLOB)
-        self.contents.append(BLOB_INFO + str(len(src) - 1))
 
-        for line in src[1:]:
-            self.contents.append(line)
+        src = '\n'.join(map(to_source, node)).split('\n')
+        self.contents.append('{0}{1}'.format(BLOB_INFO, len(src)))
+
+        self.contents.extend(src)
 
     def is_constructor(self, node):
         out = cStringIO.StringIO()
