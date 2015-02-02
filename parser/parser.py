@@ -31,13 +31,11 @@ class GitTreeCreator:
 
 
 def main():
-    argvs = sys.argv
-    if len(argvs) != 2:
-        print "input error"
-        print "argv : <Full path of output file>"
+    if len(sys.argv) != 2:
+        print('usage : python {} <absolute path of output file>'.format(sys.argv[0]))
         return
 
-    creator = GitTreeCreator(argvs[1])
+    creator = GitTreeCreator(sys.argv[1])
     creator.parse_sourcecode()
 
 if __name__ == '__main__':
