@@ -18,6 +18,11 @@ PARAMETERS_BLOB = 'parameters'
 EXTEND_BLOB = 'extend'
 OTHER_BLOB = 'other'
 
+def get_blob(name, text):
+    lines = [BLOB + name,
+             '{0}{1}'.format(BLOB_INFO, len(text))]
+    lines.extend(text)
+    return lines
 
 class TreeWriter:
     def __init__(self, output_file):
@@ -77,9 +82,7 @@ class TreeWriter:
                 out = cStringIO.StringIO()
                 Unparser(node.bases, out)
                 src = out.getvalue()
-                self.contents.append(BLOB + EXTEND_BLOB)
-                self.contents.append(BLOB_INFO + '1')
-                self.contents.append(src)
+                self.contents.extend(get_blob(EXTEND_BLOB, src))
 
             self.contents.append(END_TREE + node_class.name)
             self.contents.append(END_TREE + CLASS_ROOT_NAME)
@@ -98,27 +101,16 @@ class TreeWriter:
         function_name = src.pop(0)[4:-1]
 
         self.contents.append(START_TREE + function_name)
-        self.contents.append(BLOB + BODY_BLOB)
-        self.contents.append('{0}{1}'.format(BLOB_INFO, len(src)))
+        self.contents.extend(get_blob(BODY_BLOB, src))
 
-        for line in src:
-            self.contents.append(line)
-
-        self.contents.append(BLOB + PARAMETERS_BLOB)
-        self.contents.append('{0}{1}'.format(BLOB_INFO, len(node.args.args)))
-
-        for args in node.args.args:
-            self.contents.append(args.id)
+        args = [args.id for args in node.args.args]
+        self.contents.extend(get_blob(PARAMETERS_BLOB, args))
 
         self.contents.append(END_TREE + function_name)
 
     def create_other_tree(self, node):
-        self.contents.append(BLOB + OTHER_BLOB)
-
         src = '\n'.join(map(to_source, node)).split('\n')
-        self.contents.append('{0}{1}'.format(BLOB_INFO, len(src)))
-
-        self.contents.extend(src)
+        self.contents.extend(get_blob(OTHER_BLOB, src))
 
     def is_constructor(self, node):
         out = cStringIO.StringIO()
