@@ -79,9 +79,7 @@ class TreeWriter:
 
             # write base class
             if hasattr(node, "bases"):
-                out = cStringIO.StringIO()
-                Unparser(node.bases, out)
-                src = out.getvalue()
+                src = to_source(node.bases)
                 self.contents.extend(get_blob(EXTEND_BLOB, src))
 
             self.contents.append(END_TREE + node_class.name)
