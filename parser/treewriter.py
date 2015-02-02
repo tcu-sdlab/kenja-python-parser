@@ -84,8 +84,6 @@ class TreeWriter:
             # write other
             if len(other) != 0:
                 self.create_other_tree(other)
-        else:
-            pass
 
     def create_func_tree(self, node):
         out = cStringIO.StringIO()
