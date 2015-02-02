@@ -13,9 +13,9 @@ class GitTreeCreator:
         src = sys.stdin.read()
         self.write_ast_as_filetree(src)
 
-    def write_ast_as_filetree(self, source):
+    def write_ast_as_filetree(self, src):
         try:
-            self.root = ast.parse(source)
+            self.root = ast.parse(src)
         except:
             pass
         self.output_file = open(self.output_dir, 'w')
