@@ -7,16 +7,11 @@ class GitTreeCreator:
     def __init__(self, output_dir):
         self.output_dir = output_dir
         self.output_file = []
-        self.source = ""
         self.root = []
 
-    def read_file(self):
-        for line in sys.stdin:
-            self.source += line
-
     def parse_sourcecode(self):
-        self.read_file()
-        self.write_ast_as_filetree(self.source)
+        src = sys.stdin.read()
+        self.write_ast_as_filetree(src)
 
     def write_ast_as_filetree(self, source):
         try:
