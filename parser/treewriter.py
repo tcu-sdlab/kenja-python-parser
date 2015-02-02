@@ -3,11 +3,11 @@ import cStringIO
 from unparse import Unparser
 
 
-TREE = '[TN]'
-START_TREE = '[TS]'
-END_TREE = '[TE]'
-BLOB = '[BN]'
-BLOB_INFO = '[BI]'
+TREE = '[TN] '
+START_TREE = '[TS] '
+END_TREE = '[TE] '
+BLOB = '[BN] '
+BLOB_INFO = '[BI] '
 
 CLASS_ROOT_NAME = '[CN]'
 CONSTRUCTOR_ROOT_NAME = '[CS]'
@@ -51,21 +51,21 @@ class TreeWriter:
                     func_tmp.append(node_func)
 
             if len(constructor_tmp) != 0:
-                self.contents.append(START_TREE + ' ' + CONSTRUCTOR_ROOT_NAME + '\n')
+                self.contents.append(START_TREE + CONSTRUCTOR_ROOT_NAME + '\n')
                 for node_func in constructor_tmp:
                     self.create_func_tree(node_func)
-                self.contents.append(END_TREE + ' ' + CONSTRUCTOR_ROOT_NAME + '\n')
+                self.contents.append(END_TREE + CONSTRUCTOR_ROOT_NAME + '\n')
 
             if len(func_tmp) != 0:
-                self.contents.append(START_TREE + ' ' + METHOD_ROOT_NAME + '\n')
+                self.contents.append(START_TREE + METHOD_ROOT_NAME + '\n')
                 for node_func in func_tmp:
                     self.create_func_tree(node_func)
-                self.contents.append(END_TREE + ' ' + METHOD_ROOT_NAME + '\n')
+                self.contents.append(END_TREE + METHOD_ROOT_NAME + '\n')
 
             # write class
             for node_class in class_def:
-                self.contents.append(START_TREE + ' ' + CLASS_ROOT_NAME + '\n')
-                self.contents.append(START_TREE + ' ' + node_class.name + '\n')
+                self.contents.append(START_TREE + CLASS_ROOT_NAME + '\n')
+                self.contents.append(START_TREE + node_class.name + '\n')
 
                 self.create_tree(node_class)
 
@@ -74,12 +74,12 @@ class TreeWriter:
                     out = cStringIO.StringIO()
                     Unparser(node.bases, out)
                     src = out.getvalue()
-                    self.contents.append(BLOB + ' ' + EXTEND_BLOB + '\n')
-                    self.contents.append(BLOB_INFO + ' ' + '1' + '\n')
+                    self.contents.append(BLOB + EXTEND_BLOB + '\n')
+                    self.contents.append(BLOB_INFO + '1' + '\n')
                     self.contents.append(src + '\n')
 
-                self.contents.append(END_TREE + ' ' + node_class.name + '\n')
-                self.contents.append(END_TREE + ' ' + CLASS_ROOT_NAME + '\n')
+                self.contents.append(END_TREE + node_class.name + '\n')
+                self.contents.append(END_TREE + CLASS_ROOT_NAME + '\n')
 
             # write other
             if len(other) != 0:
@@ -92,28 +92,28 @@ class TreeWriter:
         Unparser(node, out)
         src = out.getvalue().split('\n')
 
-        self.contents.append(START_TREE + ' ' + src[2][4:-1] + '\n')
-        self.contents.append(BLOB + ' ' + BODY_BLOB + '\n')
-        self.contents.append(BLOB_INFO + ' ' + str(len(src[3:])) + '\n')
+        self.contents.append(START_TREE + src[2][4:-1] + '\n')
+        self.contents.append(BLOB + BODY_BLOB + '\n')
+        self.contents.append(BLOB_INFO + str(len(src[3:])) + '\n')
 
         for line in src[3:]:
             self.contents.append(line + '\n')
 
-        self.contents.append(BLOB + ' ' + PARAMETERS_BLOB + '\n')
-        self.contents.append(BLOB_INFO + ' ' + str(len(node.args.args)) + '\n')
+        self.contents.append(BLOB + PARAMETERS_BLOB + '\n')
+        self.contents.append(BLOB_INFO + str(len(node.args.args)) + '\n')
 
         for args in node.args.args:
             self.contents.append(args.id + '\n')
 
-        self.contents.append(END_TREE + ' ' + src[2][4:-1] + '\n')
+        self.contents.append(END_TREE + src[2][4:-1] + '\n')
 
     def create_other_tree(self, node):
         out = cStringIO.StringIO()
         Unparser(node, out)
         src = out.getvalue().split('\n')
 
-        self.contents.append(BLOB + ' ' + OTHER_BLOB + '\n')
-        self.contents.append(BLOB_INFO + ' ' + str(len(src) - 1) + '\n')
+        self.contents.append(BLOB + OTHER_BLOB + '\n')
+        self.contents.append(BLOB_INFO + str(len(src) - 1) + '\n')
 
         for line in src[1:]:
             self.contents.append(line + '\n')
