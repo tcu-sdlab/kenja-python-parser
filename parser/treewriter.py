@@ -60,13 +60,8 @@ class TreeWriter:
                 others.append(child)
 
         # write func
-        func_tmp = []
-        for node_func in func_defs:
-            func_tmp.append(node_func)
-
-        if func_tmp:
-            contents = [self.create_func_tree(node_func) for node_func in func_tmp]
-            self.contents.extend(get_tree(METHOD_ROOT_NAME, contents))
+        func_contents = [self.create_func_tree(func_def) for func_def in func_defs]
+        self.contents.extend(get_tree(METHOD_ROOT_NAME, func_contents))
 
         # write class
         class_contents = [self.create_class_tree(class_def) for class_def in class_defs]
