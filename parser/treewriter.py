@@ -69,16 +69,12 @@ class TreeWriter:
                 func_tmp.append(node_func)
 
         if constructor_tmp:
-            self.contents.append(START_TREE + CONSTRUCTOR_ROOT_NAME)
-            for node_func in constructor_tmp:
-                self.create_func_tree(node_func)
-            self.contents.append(END_TREE + CONSTRUCTOR_ROOT_NAME)
+            contents = [self.create_func_tree(node_func) for node_func in constructor_tmp]
+            self.contents.extend(get_tree(CONSTRUCTOR_ROOT_NAME, contents))
 
         if func_tmp:
-            self.contents.append(START_TREE + METHOD_ROOT_NAME)
-            for node_func in func_tmp:
-                self.create_func_tree(node_func)
-            self.contents.append(END_TREE + METHOD_ROOT_NAME)
+            contents = [self.create_func_tree(node_func) for node_func in func_tmp]
+            self.contents.extend(get_tree(METHOD_ROOT_NAME, contents))
 
         # write class
         for node_class in class_defs:
@@ -118,7 +114,7 @@ class TreeWriter:
         args = [args.id for args in node.args.args]
         contents.append(('blob', PARAMETERS_BLOB, args))
 
-        self.contents.extend(get_tree(function_name, contents))
+        return ('tree', function_name, contents)
 
     def create_other_tree(self, node):
         src = '\n'.join(map(to_source, node)).split('\n')
