@@ -5,8 +5,6 @@ from astor import to_source
 TREE = '[TN] '
 START_TREE = '[TS] '
 END_TREE = '[TE] '
-BLOB = '[BN] '
-BLOB_INFO = '[BI] '
 
 CLASS_ROOT_NAME = '[CN]'
 CONSTRUCTOR_ROOT_NAME = '[CS]'
@@ -17,8 +15,8 @@ EXTEND_BLOB = 'extend'
 OTHER_BLOB = 'other'
 
 def get_blob(name, text):
-    lines = [BLOB + name,
-             '{0}{1}'.format(BLOB_INFO, len(text))]
+    lines = ['[BN] {}'.format(name),
+             '[BI] {}'.format(len(text))]
     lines.extend(text)
     return lines
 
