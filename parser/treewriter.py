@@ -2,13 +2,10 @@ import ast
 from astor import to_source
 
 
-TREE = '[TN] '
-START_TREE = '[TS] '
-END_TREE = '[TE] '
-
 CLASS_ROOT_NAME = '[CN]'
 CONSTRUCTOR_ROOT_NAME = '[CS]'
 METHOD_ROOT_NAME = '[MT]'
+
 BODY_BLOB = 'body'
 PARAMETERS_BLOB = 'parameters'
 EXTEND_BLOB = 'extend'
@@ -44,12 +41,11 @@ class TreeWriter:
         self.write_file()
 
     def create_tree(self, node):
+        assert hasattr(node, 'body')
+
         func_contents = []
         class_contents = []
         others = []
-
-        assert hasattr(node, 'body')
-
         for child in node.body:
             if isinstance(child, ast.ClassDef):
                 class_contents.append(self.create_func_tree(child))
