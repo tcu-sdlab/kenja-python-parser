@@ -14,6 +14,7 @@ PARAMETERS_BLOB = 'parameters'
 EXTEND_BLOB = 'extend'
 OTHER_BLOB = 'other'
 
+
 def get_blob(name, text):
     lines = ['[BN] {}'.format(name),
              '[BI] {}'.format(len(text))]
