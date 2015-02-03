@@ -20,6 +20,19 @@ def get_blob(name, text):
     lines.extend(text)
     return lines
 
+
+def get_tree(name, contents):
+    lines = []
+    lines.append('[TS] {}'.format(name))
+    for t, n, c in contents:
+        if t == 'blob':
+            lines.extend(get_blob(n, c))
+        elif t == 'tree':
+            lines.extend(get_tree(n, c))
+    lines.append('[TE] {}'.format(name))
+    return lines
+
+
 class TreeWriter:
     def __init__(self, output_file):
         self.output_file = output_file
@@ -68,22 +81,26 @@ class TreeWriter:
 
         # write class
         for node_class in class_defs:
-            self.contents.append(START_TREE + CLASS_ROOT_NAME)
-            self.contents.append(START_TREE + node_class.name)
-
-            self.create_tree(node_class)
-
-            # write base class
-            if hasattr(node, "bases"):
-                src = to_source(node.bases)
-                self.contents.extend(get_blob(EXTEND_BLOB, src))
-
-            self.contents.append(END_TREE + node_class.name)
-            self.contents.append(END_TREE + CLASS_ROOT_NAME)
+            self.create_class_tree(node_class)
 
         # write others
         if others:
             self.create_other_tree(others)
+
+    def create_class_tree(self, class_def):
+        self.contents.append(START_TREE + CLASS_ROOT_NAME)
+        self.contents.append(START_TREE + class_def.name)
+
+        self.create_tree(class_def)
+
+        # write base class
+        assert hasattr(class_def, 'bases')
+        if class_def.bases:
+            src = to_source(class_def.bases)
+            self.contents.extend(get_blob(EXTEND_BLOB, src))
+
+        self.contents.append(END_TREE + class_def.name)
+        self.contents.append(END_TREE + CLASS_ROOT_NAME)
 
     def create_func_tree(self, node):
         src = to_source(node).split('\n')
@@ -94,13 +111,13 @@ class TreeWriter:
         assert src[0][-1] == ':'
         function_name = src.pop(0)[4:-1]
 
-        self.contents.append(START_TREE + function_name)
-        self.contents.extend(get_blob(BODY_BLOB, src))
+        contents = []
+        contents.append(('blob', BODY_BLOB, src))
 
         args = [args.id for args in node.args.args]
-        self.contents.extend(get_blob(PARAMETERS_BLOB, args))
+        contents.append(('blob', PARAMETERS_BLOB, args))
 
-        self.contents.append(END_TREE + function_name)
+        self.contents.extend(get_tree(function_name, contents))
 
     def create_other_tree(self, node):
         src = '\n'.join(map(to_source, node)).split('\n')
