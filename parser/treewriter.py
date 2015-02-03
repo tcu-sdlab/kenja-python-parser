@@ -44,26 +44,21 @@ class TreeWriter:
         self.write_file()
 
     def create_tree(self, node):
-        class_defs = []
-        func_defs = []
+        func_contents = []
+        class_contents = []
         others = []
 
         assert hasattr(node, 'body')
 
         for child in node.body:
             if isinstance(child, ast.ClassDef):
-                class_defs.append(child)
+                class_contents.append(self.create_func_tree(child))
             elif isinstance(child, ast.FunctionDef):
-                func_defs.append(child)
+                func_contents.append(self.create_class_tree(child))
             else:
                 others.append(child)
 
-        # write func
-        func_contents = [self.create_func_tree(func_def) for func_def in func_defs]
         self.contents.extend(get_tree(METHOD_ROOT_NAME, func_contents))
-
-        # write class
-        class_contents = [self.create_class_tree(class_def) for class_def in class_defs]
         self.contents.extend(get_tree(CLASS_ROOT_NAME, class_contents))
 
         # write others
