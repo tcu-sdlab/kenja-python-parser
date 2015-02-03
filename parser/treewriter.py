@@ -38,7 +38,9 @@ class TreeWriter:
 
     def write_tree(self, node):
         self.create_tree(node)
-        self.write_file()
+
+        self.output_file.write('\n'.join(self.contents))
+        self.output_file.write('\n')
 
     def create_tree(self, node):
         assert hasattr(node, 'body')
@@ -124,7 +126,3 @@ class TreeWriter:
 
     def is_constructor(self, node):
         return node.name == '__new__' or node.name == '__init__'
-
-    def write_file(self):
-        self.output_file.write('\n'.join(self.contents))
-        self.output_file.write('\n')
