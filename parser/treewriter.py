@@ -60,44 +60,61 @@ class TreeWriter:
                 others.append(child)
 
         # write func
-        constructor_tmp = []
         func_tmp = []
         for node_func in func_defs:
-            if self.is_constructor(node_func):
-                constructor_tmp.append(node_func)
-            else:
-                func_tmp.append(node_func)
-
-        if constructor_tmp:
-            contents = [self.create_func_tree(node_func) for node_func in constructor_tmp]
-            self.contents.extend(get_tree(CONSTRUCTOR_ROOT_NAME, contents))
+            func_tmp.append(node_func)
 
         if func_tmp:
             contents = [self.create_func_tree(node_func) for node_func in func_tmp]
             self.contents.extend(get_tree(METHOD_ROOT_NAME, contents))
 
         # write class
-        for node_class in class_defs:
-            self.create_class_tree(node_class)
+        class_contents = [self.create_class_tree(class_def) for class_def in class_defs]
+        self.contents.extend(get_tree(CLASS_ROOT_NAME, class_contents))
 
         # write others
         if others:
             self.create_other_tree(others)
 
     def create_class_tree(self, class_def):
-        self.contents.append(START_TREE + CLASS_ROOT_NAME)
-        self.contents.append(START_TREE + class_def.name)
+        inner_class_defs = []
+        func_defs = []
+        constructor_defs = []
+        for child in class_def.body:
+            if isinstance(child, ast.ClassDef):
+                inner_class_defs.append(child)
+            elif isinstance(child, ast.FunctionDef):
+                if self.is_constructor(child):
+                    constructor_defs.append(child)
+                else:
+                    func_defs.append(child)
 
-        self.create_tree(class_def)
+        contents = []
 
-        # write base class
+        inner_class_contents = []
+        for inner_class_def in inner_class_defs:
+            inner_class_contents.extend(self.create_class_tree(inner_class_def))
+        if inner_class_contents:
+            contents.append(('tree', CLASS_ROOT_NAME, inner_class_contents))
+
+        constructor_contents = []
+        for constructor_def in constructor_defs:
+            constructor_contents.append(self.create_func_tree(constructor_def))
+        if constructor_contents:
+            contents.append(('tree', CONSTRUCTOR_ROOT_NAME, constructor_contents))
+
+        function_contents = []
+        for func_def in func_defs:
+            function_contents.append(self.create_func_tree(func_def))
+        if function_contents:
+            contents.append(('tree', METHOD_ROOT_NAME, function_contents))
+
         assert hasattr(class_def, 'bases')
         if class_def.bases:
             src = to_source(class_def.bases)
-            self.contents.extend(get_blob(EXTEND_BLOB, src))
+            contents.append(('blob', EXTEND_BLOB, src))
 
-        self.contents.append(END_TREE + class_def.name)
-        self.contents.append(END_TREE + CLASS_ROOT_NAME)
+        return ('tree', class_def.name, contents)
 
     def create_func_tree(self, node):
         src = to_source(node).split('\n')
