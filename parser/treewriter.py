@@ -48,8 +48,7 @@ class TreeWriter:
         func_defs = []
         others = []
 
-        if not hasattr(node, 'body'):
-            return
+        assert hasattr(node, 'body')
 
         for child in node.body:
             if isinstance(child, ast.ClassDef):
