@@ -1,21 +1,34 @@
 import ast
-import cStringIO
-from unparse import Unparser
+from astor import to_source
 
 
 CLASS_ROOT_NAME = '[CN]'
-TREE = '[TN]'
-START_TREE = '[TS]'
-END_TREE = '[TE]'
+CONSTRUCTOR_ROOT_NAME = '[CS]'
 METHOD_ROOT_NAME = '[MT]'
-BLOB = '[BN]'
-BLOB_INFO = '[BI]'
+
 BODY_BLOB = 'body'
 PARAMETERS_BLOB = 'parameters'
-
-CONSTRUCTOR_ROOT_NAME = '[CS]'
 EXTEND_BLOB = 'extend'
 OTHER_BLOB = 'other'
+
+
+def get_blob(name, text):
+    lines = ['[BN] {}'.format(name),
+             '[BI] {}'.format(len(text))]
+    lines.extend(text)
+    return lines
+
+
+def get_tree(name, contents):
+    lines = []
+    lines.append('[TS] {}'.format(name))
+    for t, n, c in contents:
+        if t == 'blob':
+            lines.extend(get_blob(n, c))
+        elif t == 'tree':
+            lines.extend(get_tree(n, c))
+    lines.append('[TE] {}'.format(name))
+    return lines
 
 
 class TreeWriter:
@@ -25,109 +38,91 @@ class TreeWriter:
 
     def write_tree(self, node):
         self.create_tree(node)
-        self.write_file()
+
+        self.output_file.write('\n'.join(self.contents))
+        self.output_file.write('\n')
 
     def create_tree(self, node):
-        class_def = []
-        func_def = []
-        other = []
+        assert hasattr(node, 'body')
 
-        if hasattr(node, "body"):
-            for child in node.body:
-                if isinstance(child, ast.ClassDef):
-                    class_def.append(child)
-                elif isinstance(child, ast.FunctionDef):
-                    func_def.append(child)
+        func_contents = []
+        class_contents = []
+        others = []
+        for child in node.body:
+            if isinstance(child, ast.ClassDef):
+                class_contents.append(self.create_func_tree(child))
+            elif isinstance(child, ast.FunctionDef):
+                func_contents.append(self.create_class_tree(child))
+            else:
+                others.append(child)
+
+        self.contents.extend(get_tree(METHOD_ROOT_NAME, func_contents))
+        self.contents.extend(get_tree(CLASS_ROOT_NAME, class_contents))
+
+        # write others
+        if others:
+            self.create_other_tree(others)
+
+    def create_class_tree(self, class_def):
+        inner_class_defs = []
+        func_defs = []
+        constructor_defs = []
+        for child in class_def.body:
+            if isinstance(child, ast.ClassDef):
+                inner_class_defs.append(child)
+            elif isinstance(child, ast.FunctionDef):
+                if self.is_constructor(child):
+                    constructor_defs.append(child)
                 else:
-                    other.append(child)
+                    func_defs.append(child)
 
-            # write func
-            constructor_tmp = []
-            func_tmp = []
-            for node_func in func_def:
-                if self.is_constructor(node_func):
-                    constructor_tmp.append(node_func)
-                else:
-                    func_tmp.append(node_func)
+        contents = []
 
-            if len(constructor_tmp) != 0:
-                self.contents.append(START_TREE + ' ' + CONSTRUCTOR_ROOT_NAME + '\n')
-                for node_func in constructor_tmp:
-                    self.create_func_tree(node_func)
-                self.contents.append(END_TREE + ' ' + CONSTRUCTOR_ROOT_NAME + '\n')
+        inner_class_contents = []
+        for inner_class_def in inner_class_defs:
+            inner_class_contents.extend(self.create_class_tree(inner_class_def))
+        if inner_class_contents:
+            contents.append(('tree', CLASS_ROOT_NAME, inner_class_contents))
 
-            if len(func_tmp) != 0:
-                self.contents.append(START_TREE + ' ' + METHOD_ROOT_NAME + '\n')
-                for node_func in func_tmp:
-                    self.create_func_tree(node_func)
-                self.contents.append(END_TREE + ' ' + METHOD_ROOT_NAME + '\n')
+        constructor_contents = []
+        for constructor_def in constructor_defs:
+            constructor_contents.append(self.create_func_tree(constructor_def))
+        if constructor_contents:
+            contents.append(('tree', CONSTRUCTOR_ROOT_NAME, constructor_contents))
 
-            # write class
-            for node_class in class_def:
-                self.contents.append(START_TREE + ' ' + CLASS_ROOT_NAME + '\n')
-                self.contents.append(START_TREE + ' ' + node_class.name + '\n')
+        function_contents = []
+        for func_def in func_defs:
+            function_contents.append(self.create_func_tree(func_def))
+        if function_contents:
+            contents.append(('tree', METHOD_ROOT_NAME, function_contents))
 
-                self.create_tree(node_class)
+        assert hasattr(class_def, 'bases')
+        if class_def.bases:
+            src = to_source(class_def.bases)
+            contents.append(('blob', EXTEND_BLOB, src))
 
-                # write base class
-                if hasattr(node, "bases"):
-                    out = cStringIO.StringIO()
-                    Unparser(node.bases, out)
-                    src = out.getvalue()
-                    self.contents.append(BLOB + ' ' + EXTEND_BLOB + '\n')
-                    self.contents.append(BLOB_INFO + ' ' + '1' + '\n')
-                    self.contents.append(src + '\n')
-
-                self.contents.append(END_TREE + ' ' + node_class.name + '\n')
-                self.contents.append(END_TREE + ' ' + CLASS_ROOT_NAME + '\n')
-
-            # write other
-            if len(other) != 0:
-                self.create_other_tree(other)
-        else:
-            pass
+        return ('tree', class_def.name, contents)
 
     def create_func_tree(self, node):
-        out = cStringIO.StringIO()
-        Unparser(node, out)
-        src = out.getvalue().split('\n')
+        src = to_source(node).split('\n')
 
-        self.contents.append(START_TREE + ' ' + src[2][4:-1] + '\n')
-        self.contents.append(BLOB + ' ' + BODY_BLOB + '\n')
-        self.contents.append(BLOB_INFO + ' ' + str(len(src[3:])) + '\n')
+        # src[0] has def foobar(...):
+        # src[4:-1] means foobar(...)
+        assert src[0].startswith('def ')
+        assert src[0][-1] == ':'
+        function_name = src.pop(0)[4:-1]
 
-        for line in src[3:]:
-            self.contents.append(line + '\n')
+        contents = []
+        contents.append(('blob', BODY_BLOB, src))
 
-        self.contents.append(BLOB + ' ' + PARAMETERS_BLOB + '\n')
-        self.contents.append(BLOB_INFO + ' ' + str(len(node.args.args)) + '\n')
+        args = [args.id for args in node.args.args]
+        contents.append(('blob', PARAMETERS_BLOB, args))
 
-        for args in node.args.args:
-            self.contents.append(args.id + '\n')
-
-        self.contents.append(END_TREE + ' ' + src[2][4:-1] + '\n')
+        return ('tree', function_name, contents)
 
     def create_other_tree(self, node):
-        out = cStringIO.StringIO()
-        Unparser(node, out)
-        src = out.getvalue().split('\n')
-
-        self.contents.append(BLOB + ' ' + OTHER_BLOB + '\n')
-        self.contents.append(BLOB_INFO + ' ' + str(len(src) - 1) + '\n')
-
-        for line in src[1:]:
-            self.contents.append(line + '\n')
+        src = '\n'.join(map(to_source, node)).split('\n')
+        self.contents.extend(get_blob(OTHER_BLOB, src))
 
     def is_constructor(self, node):
-        out = cStringIO.StringIO()
-        Unparser(node, out)
-        src = out.getvalue().split('\n')
-
-        if (src[2][4:11] == "__new__") or (src[2][4:12] == "__init__"):
-            return True
-        else:
-            return False
-
-    def write_file(self):
-        for line in self.contents:
-            self.output_file.write(line)
+        return node.name == '__new__' or node.name == '__init__'
