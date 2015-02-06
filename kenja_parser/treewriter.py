@@ -94,35 +94,53 @@ def is_constructor(node):
     return node.name == '__new__' or node.name == '__init__'
 
 
-class TreeWriter:
-    def __init__(self, output_file):
-        self.output_file = output_file
-        self.contents = []
+def parse_and_write_gittree(src, dst_path):
+    try:
+        ast_root = ast.parse(src)
+    except Exception:
+        ast_root = []
 
-    def write_tree(self, node):
-        self.create_tree(node)
+    with open(dst_path, 'w') as output_file:
+        lines = create_tree(ast_root)
 
-        self.output_file.write('\n'.join(self.contents))
-        self.output_file.write('\n')
+        output_file.write('\n'.join(lines))
+        output_file.write('\n')
 
-    def create_tree(self, node):
-        assert hasattr(node, 'body')
 
-        func_contents = []
-        class_contents = []
-        others = []
-        for child in node.body:
-            if isinstance(child, ast.ClassDef):
-                class_contents.append(create_class_tree(child))
-            elif isinstance(child, ast.FunctionDef):
-                func_contents.append(create_func_tree(child))
-            else:
-                others.append(child)
+def create_tree(node):
+    lines = []
+    assert hasattr(node, 'body')
 
-        self.contents.extend(get_tree(METHOD_ROOT_NAME, func_contents))
-        self.contents.extend(get_tree(CLASS_ROOT_NAME, class_contents))
+    func_contents = []
+    class_contents = []
+    others = []
+    for child in node.body:
+        if isinstance(child, ast.ClassDef):
+            class_contents.append(create_class_tree(child))
+        elif isinstance(child, ast.FunctionDef):
+            func_contents.append(create_func_tree(child))
+        else:
+            others.append(child)
 
-        # write others
-        if others:
-            src = '\n'.join(map(to_source, others)).split('\n')
-            self.contents.extend(get_blob(OTHER_BLOB, src))
+    lines.extend(get_tree(METHOD_ROOT_NAME, func_contents))
+    lines.extend(get_tree(CLASS_ROOT_NAME, class_contents))
+
+    # write others
+    if others:
+        src = '\n'.join(map(to_source, others)).split('\n')
+        lines.extend(get_blob(OTHER_BLOB, src))
+
+    return lines
+
+
+def main():
+    import sys
+    if len(sys.argv) != 2:
+        print('usage : python {} <absolute path of output file>'.format(sys.argv[0]))
+        return
+
+    src = sys.stdin.read()
+    parse_and_write_gittree(src, sys.argv[1])
+
+if __name__ == '__main__':
+    main()
