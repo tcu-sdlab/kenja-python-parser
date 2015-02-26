@@ -66,8 +66,10 @@ def create_class_tree(class_def):
 
     assert hasattr(class_def, 'bases')
     if class_def.bases:
-        src = to_source(class_def.bases)
-        contents.append(('blob', EXTEND_BLOB, src))
+        bases = []
+        for base in class_def.bases:
+            bases.append(to_source(base))
+        contents.append(('blob', EXTEND_BLOB, bases))
 
     return ('tree', class_def.name, contents)
 
