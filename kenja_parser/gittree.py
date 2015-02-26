@@ -77,11 +77,7 @@ def create_class_tree(class_def):
 def create_func_tree(node):
     src = to_source(node).split('\n')
 
-    # src[0] has def foobar(...):
-    # src[4:-1] means foobar(...)
-    assert src[0].startswith('def ')
-    assert src[0][-1] == ':'
-    function_name = src.pop(0)[4:-1]
+    function_name = node.name
 
     contents = []
     contents.append(('blob', BODY_BLOB, src))
