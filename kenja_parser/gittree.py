@@ -22,7 +22,6 @@ def get_blob(name, text):
 def get_tree(name, contents):
     lines = []
     lines.append('[TS] {}'.format(name))
-    print(contents)
     for t, n, c in contents:
         if t == 'blob':
             lines.extend(get_blob(n, c))
