@@ -82,7 +82,12 @@ def create_func_tree(node):
     contents = []
     contents.append(('blob', BODY_BLOB, src))
 
-    args = [args.id for args in node.args.args]
+    args = []
+    for arg in node.args.args:
+        if isinstance(arg, ast.Name):
+            args.append(arg.id)
+        else:
+            args.append(to_source(arg))
     contents.append(('blob', PARAMETERS_BLOB, args))
 
     return ('tree', function_name, contents)
