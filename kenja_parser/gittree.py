@@ -22,6 +22,7 @@ def get_blob(name, text):
 def get_tree(name, contents):
     lines = []
     lines.append('[TS] {}'.format(name))
+    print(contents)
     for t, n, c in contents:
         if t == 'blob':
             lines.extend(get_blob(n, c))
@@ -48,7 +49,7 @@ def create_class_tree(class_def):
 
     inner_class_contents = []
     for inner_class_def in inner_class_defs:
-        inner_class_contents.extend(create_class_tree(inner_class_def))
+        inner_class_contents.append(create_class_tree(inner_class_def))
     if inner_class_contents:
         contents.append(('tree', CLASS_ROOT_NAME, inner_class_contents))
 
