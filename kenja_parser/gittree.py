@@ -1,4 +1,5 @@
 import ast
+from operator import itemgetter
 from astor import to_source
 
 
@@ -22,6 +23,7 @@ def get_blob(name, text):
 def get_tree(name, contents):
     lines = []
     lines.append('[TS] {}'.format(name))
+    contents = sorted(contents, key=itemgetter(1))
     for t, n, c in contents:
         if t == 'blob':
             lines.extend(get_blob(n, c))
