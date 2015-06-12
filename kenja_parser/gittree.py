@@ -1,4 +1,5 @@
 import ast
+from operator import itemgetter
 from astor import to_source
 
 
@@ -22,6 +23,7 @@ def get_blob(name, text):
 def get_tree(name, contents):
     lines = []
     lines.append('[TS] {}'.format(name))
+    contents = sorted(contents, key=itemgetter(1))
     for t, n, c in contents:
         if t == 'blob':
             lines.extend(get_blob(n, c))
@@ -111,7 +113,6 @@ def parse_and_write_gittree(src, dst_path):
 
 
 def create_tree(node):
-    lines = []
     assert hasattr(node, 'body')
 
     func_contents = []
@@ -125,15 +126,19 @@ def create_tree(node):
         else:
             others.append(child)
 
-    lines.extend(get_tree(METHOD_ROOT_NAME, func_contents))
-    lines.extend(get_tree(CLASS_ROOT_NAME, class_contents))
+    contents = []
+    if class_contents:
+        contents.append(('tree', CLASS_ROOT_NAME, class_contents))
 
-    # write others
+    if func_contents:
+        contents.append(('tree', METHOD_ROOT_NAME, func_contents))
+
     if others:
         src = '\n'.join(map(to_source, others)).split('\n')
-        lines.extend(get_blob(OTHER_BLOB, src))
+        contents.append(('blob', OTHER_BLOB, src))
 
-    return lines
+    # we don't need "[TS] root" and "[TE] root"
+    return get_tree('root', contents)[1:-1]
 
 
 def main():
