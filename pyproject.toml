@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "kenja-python-parser"
+version = "0.1.0"
+description = "Python parser for Kenja Historage"
+authors = ["Kenji Fujiwara <kenjif@tcu.ac.jp>"]
+license = "MIT"
+repository = "https://github.com/sdlab-naist/kenja-python-parser"
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Environment :: Console',
+    'Environment :: Web Environment',
+    'Intended Audience :: Science/Resarch',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: MacOS :: MacOS X',
+    'Operating System :: POSIX :: Linux',
+    'Programming Language :: Python',
+    'Topic :: Scientific/Engineering :: Information Analysis',
+    'Topic :: Software Development :: Libraries',
+    'Topic :: Utilities',
+]
+packages = [
+    { include = "kenja_parser"}
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+astor = "^0.8.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
